@@ -109,7 +109,7 @@ void processIncomingMessages(char *variable, char *value) {
     
     Serial.println(atoi(value));
     ledBrightness = atoi(value);
-    analogWrite(REDLED,map(ledBrightness,0,1023,0,255));
+    analogWrite(REDLED,(float)map(ledBrightness,0,1023,0,255));
   }  
 
 }

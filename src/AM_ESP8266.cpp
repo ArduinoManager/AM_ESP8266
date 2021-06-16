@@ -347,13 +347,89 @@ bool AMController::readVariable(String &data, String &variable, String &value) {
   return false;
 }
 
-void AMController::writeMessage(const char *variable, float value) {
+void AMController::writeMessage(const char *variable, int value) {
+ar buffer[VARIABLELEN+VALUELEN+3];
+    char vbuffer[VALUELEN];
+            
+    dtostrf(value, 0, 0, vbuffer);    
+    snprintf(buffer,VARIABLELEN+VALUELEN+3, "%s=%s#", variable, vbuffer); 
+        
+    _serial->print("AT+CIPSEND=");
+  	_serial->print(0);  // mux !!!!
+  	_serial->print(",");
+  	_serial->println(strlen(buffer));
 
-	this->writeMessage((char *)variable,value);
+  	_currentStatus = receiveData(500, SERIALDEBUG,"In write 0");
+
+  	if (_currentStatus == PROMPT) {
+    	_serial->print(buffer);
+  	}
+  	
+  	if (_currentStatus == BUSY) {
+  		delay(5);
+    	return;
+  	}
+
+  	if (_currentStatus == DATA) {
+		
+#if SERIALDEBUG
+    	Serial.println("DATA RECEIVED");
+#endif    			
+		handlingIncomingMessages(_messages);
+		_response = "";
+		_messages = "";
+  	}
+
+	if (_currentStatus == LINKISNOT || _currentStatus == CLOSED) {
+		if (_deviceDisconnected != NULL)
+			_deviceDisconnected();
+		_isConnected = false;
+		_canWrite = false;
+				
+		delay(1500);
+		
+		return;
+  	}
+  	
+  	if (_currentStatus == BUSY) {
+  		delay(5);
+    	return;
+  	}
+  	
+  	_currentStatus = receiveData(1000, SERIALDEBUG,"In write 1");
+
+  	if (_currentStatus == SENDERROR) {
+    	Serial.println("SEND ERROR");
+    	Serial.println(buffer);
+  	}
+
+  	if (_currentStatus == DATA) {
+#if SERIALDEBUG
+    	Serial.println("DATA RECEIVED");
+#endif    	  	
+		//    _isQueueEmpty = false;
+		handlingIncomingMessages(_messages);
+		_response = "";
+		_messages = "";
+  	}
+
+  	if (_currentStatus == LINKISNOT || _currentStatus == CLOSED) {
+		if (_deviceDisconnected != NULL)
+			_deviceDisconnected();
+		_isConnected = false;
+		_canWrite = false;
+		
+		delay(1500);
+  	}
+  	
+  	if (_currentStatus == BUSY) {
+  		delay(5);
+    	return;
+  	}
 }
 
-void AMController::writeMessage(char *variable, float value)
-{
+void AMController::writeMessage(const char *variable, float value) {
+
     char buffer[VARIABLELEN+VALUELEN+3];
     char vbuffer[VALUELEN];
             

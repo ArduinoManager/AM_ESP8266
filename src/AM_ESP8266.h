@@ -165,8 +165,8 @@ public:
 	bool begin(String ssid, String password, String address,byte port);							  		  
 	void loop();
 	void loop(unsigned long delay);
+	void writeMessage(const char *variable, int value);
 	void writeMessage(const char *variable, float value);
-	void writeMessage(char *variable, float value);
 	void writeTripleMessage(char *variable, float vX, float vY, float vZ);
 	void writeTxtMessage(const char *variable, const char *value);
 	void writeTxtMessage(char *variable, char *value);
